@@ -194,4 +194,4 @@ clean:
 
 quick: configuration typescript variants-html bundle-css inline-css copy compile
 
-all: configuration npm email typescript variants-html bundle-css inline-css swagger copy compile
+all: configuration npm email typescript variants-html bundle-css inline-css copy compile
