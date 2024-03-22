@@ -23,7 +23,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/hrfee/jfa-go/common"
-	_ "github.com/hrfee/jfa-go/docs"
 	"github.com/hrfee/jfa-go/easyproxy"
 	"github.com/hrfee/jfa-go/logger"
 	"github.com/hrfee/jfa-go/ombi"
