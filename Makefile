@@ -128,9 +128,6 @@ typescript:
 	$(ESBUILD) --target=es6 --bundle tempts/crash.ts --outfile=./$(DATA)/crash.js --minify
 	$(COPYTS)
 
-swagger:
-	$(SWAGINSTALL)
-	swag init -g main.go
 
 compile:
 	$(info Downloading deps)
