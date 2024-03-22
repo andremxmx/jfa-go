@@ -343,45 +343,51 @@ func (app *appContext) newUser(req newUserDTO, confirmed bool, gc *gin.Context) 
 	}
 
 	var profile Profile
-	if invite.Profile != "" {
-		app.debug.Printf("Applying settings from profile \"%s\"", invite.Profile)
-		var ok bool
-		profile, ok = app.storage.GetProfileKey(invite.Profile)
-		if !ok {
-			profile = app.storage.GetDefaultProfile()
+		if req.Profile != "" {
+		    app.debug.Printf("Applying settings from profile \"%s\"", req.Profile)
+		    var ok bool
+		    profile, ok = app.storage.GetProfileKey(req.Profile)
+		    if !ok {
+		        app.debug.Printf("Couldn't find profile \"%s\", using default", req.Profile)
+		        profile = app.storage.GetDefaultProfile()
+		    }
+		} else {
+		    profile = app.storage.GetDefaultProfile()
 		}
-		app.debug.Printf("Applying policy from profile \"%s\"", invite.Profile)
+		
+		app.debug.Printf("Applying policy from profile \"%s\"", req.Profile)
 		status, err = app.jf.SetPolicy(id, profile.Policy)
 		if !((status == 200 || status == 204) && err == nil) {
-			app.err.Printf("%s: Failed to set user policy (%d): %v", req.Code, status, err)
+		    app.err.Printf("%s: Failed to set user policy (%d): %v", req.Code, status, err)
 		}
-		app.debug.Printf("Applying homescreen from profile \"%s\"", invite.Profile)
+		
+		app.debug.Printf("Applying homescreen from profile \"%s\"", req.Profile)
 		status, err = app.jf.SetConfiguration(id, profile.Configuration)
 		if (status == 200 || status == 204) && err == nil {
-			status, err = app.jf.SetDisplayPreferences(id, profile.Displayprefs)
+		    status, err = app.jf.SetDisplayPreferences(id, profile.Displayprefs)
 		}
 		if !((status == 200 || status == 204) && err == nil) {
-			app.err.Printf("%s: Failed to set configuration template (%d): %v", req.Code, status, err)
+		    app.err.Printf("%s: Failed to set configuration template (%d): %v", req.Code, status, err)
 		}
+		
 		if app.config.Section("user_page").Key("enabled").MustBool(false) && app.config.Section("user_page").Key("referrals").MustBool(false) && profile.ReferralTemplateKey != "" {
-			emailStore.ReferralTemplateKey = profile.ReferralTemplateKey
-			// Store here, just incase email are disabled (whether this is even possible, i don't know)
-			app.storage.SetEmailsKey(id, emailStore)
-
-			// If UseReferralExpiry is enabled, create the ref now so the clock starts ticking
-			refInv := Invite{}
-			err = app.storage.db.Get(profile.ReferralTemplateKey, &refInv)
-			if refInv.UseReferralExpiry {
-				refInv.Code = GenerateInviteCode()
-				expiryDelta := refInv.ValidTill.Sub(refInv.Created)
-				refInv.Created = time.Now()
-				refInv.ValidTill = refInv.Created.Add(expiryDelta)
-				refInv.IsReferral = true
-				refInv.ReferrerJellyfinID = id
-				app.storage.SetInvitesKey(refInv.Code, refInv)
-			}
+		    emailStore.ReferralTemplateKey = profile.ReferralTemplateKey
+		    // Store here, just incase email are disabled (whether this is even possible, i don't know)
+		    app.storage.SetEmailsKey(id, emailStore)
+		
+		    // If UseReferralExpiry is enabled, create the ref now so the clock starts ticking
+		    refInv := Invite{}
+		    err = app.storage.db.Get(profile.ReferralTemplateKey, &refInv)
+		    if refInv.UseReferralExpiry {
+		        refInv.Code = GenerateInviteCode()
+		        expiryDelta := refInv.ValidTill.Sub(refInv.Created)
+		        refInv.Created = time.Now()
+		        refInv.ValidTill = refInv.Created.Add(expiryDelta)
+		        refInv.IsReferral = true
+		        refInv.ReferrerJellyfinID = id
+		        app.storage.SetInvitesKey(refInv.Code, refInv)
+		    }
 		}
-	}
 	// if app.config.Section("password_resets").Key("enabled").MustBool(false) {
 	if req.Email != "" || invite.UserLabel != "" {
 		app.storage.SetEmailsKey(id, emailStore)
