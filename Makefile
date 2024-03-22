@@ -89,7 +89,7 @@ else
 endif
 
 ifeq (, $(shell which swag))
-	SWAGINSTALL := $(GOBINARY) install github.com/swaggo/swag/cmd/swag@latest
+	SWAGINSTALL := $(GOBINARY) install github.com/swaggo/swag/cmd/swag@v1.16.3
 else
 	SWAGINSTALL :=
 endif
